@@ -265,26 +265,32 @@ class Main {
 		return $res_body;
 	}
 
+	public function get_rounded_total( $total, $currency ) {		
+		ini_set("serialize_precision", -1);
+
+		if(in_array(strtolower($currency), $this->zero_decimals)){
+			return round( $total );
+		}elseif(in_array(strtolower($currency), $this->two_decimals)){
+			return round( $total, 2 ) * 100;
+		}elseif(in_array(strtolower($currency), $this->three_decimals)){
+			return round( $total, 2 ) * 1000;
+		}else{
+			throw new Exception( esc_html__( 'Not supported currency', 'ziina' ) );
+		}
+	}
+
 	/**
-	 * @param mixed $order order to create payment.
+	 * @param mixed $order_id order to create payment.
 	 *
 	 * @return string
 	 * @throws Exception If request error.
 	 */
-	public function create_payment_intent( $order ): string {
-		$order = wc_get_order( $order );
+	public function create_payment_intent( $order_id ): string {
+		$order = wc_get_order( $order_id );
 
 		ini_set("serialize_precision", -1);
 
-		if(in_array(strtolower($order->get_currency()), $this->zero_decimals)){
-			$total = round( $order->get_total() );
-		}elseif(in_array(strtolower($order->get_currency()), $this->two_decimals)){
-			$total = round( $order->get_total(), 2 ) * 100;
-		}elseif(in_array(strtolower($order->get_currency()), $this->three_decimals)){
-			$total = round( $order->get_total(), 2 ) * 1000;
-		}else{
-			throw new Exception( esc_html__( 'Not supported currency', 'ziina' ) );
-		}
+		$total = $this->get_rounded_total($order->get_total(), $order->get_currency());
 
 		$body = array(
 			'amount'             => $total,
@@ -317,6 +323,10 @@ class Main {
 		}
 
 		throw new Exception( esc_html__( 'Api request error', 'ziina' ) );
+	}
+
+	public function create_refund($params) {
+    return $this->request('refund', 'POST', $params);
 	}
 
 	/**

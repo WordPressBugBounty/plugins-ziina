@@ -111,7 +111,7 @@ final class WooBlocksPaymentMethod extends AbstractPaymentMethodType {
 		if ( ! empty( $gateway ) ) {
 			$features = $gateway->supports;
 		} else {
-			$features = array( 'products' );
+			$features = array( 'products', 'refunds' );
 		}
 
 		if ( in_array( $this->name, $this->support_cards, true ) ) {

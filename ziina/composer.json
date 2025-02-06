@@ -2,7 +2,7 @@
     "name": "onepix/woocommerce-gateway-ziina-payment",
     "description": "Accept payments via Ziina Payment",
     "type": "wordpress-plugin",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "autoload": {
         "psr-4": {
             "ZiinaPayment\\": "includes/"
@@ -15,6 +15,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
+        "ramsey/uuid": "^4.0"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.7",

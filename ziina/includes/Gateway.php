@@ -9,6 +9,9 @@ namespace ZiinaPayment;
 
 use Exception;
 use WC_Payment_Gateway;
+use Ramsey\Uuid\Uuid;
+use WP_Error;
+use WC_Logger;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -28,7 +31,7 @@ class Gateway extends WC_Payment_Gateway {
 		$this->method_title       = __( 'Ziina Payment', 'ziina' );
 		$this->method_description = __( 'Pay via Ziina Payment', 'ziina' );
 		$this->has_fields         = true;
-		$this->supports           = array( 'products' );
+		$this->supports           = array( 'products', 'refunds' );
 
 		$this->init_form_fields();
 
@@ -132,5 +135,66 @@ class Gateway extends WC_Payment_Gateway {
 			'result'   => 'success',
 			'redirect' => $redirect_url,
 		);
+	}
+
+	/**
+	 * Process refund
+	 *
+	 * @param int    $order_id Order ID.
+	 * @param float  $amount Refund amount.
+	 * @param string $reason Refund reason.
+	 * @return bool|WP_Error
+	 */
+	public function process_refund( $order_id, $amount = null, $reason = '' ) {
+    $order = wc_get_order( $order_id );
+    
+    if (!$order) {
+			return new WP_Error('invalid_order', 'Order not found');
+    }
+
+    $payment_intent_id = $order->get_meta('_ziina_payment_id');
+    
+    if ( empty($payment_intent_id) ) {
+			return new WP_Error('invalid_payment', 'Payment information not found');
+    }
+
+    try {
+			$uuid = Uuid::uuid4()->toString();
+			$refund = ziina_payment()->api()->create_refund([
+				'id' 								=> $uuid,
+				'payment_intent_id' => $payment_intent_id,
+				'amount' 						=> ziina_payment()->api()->get_rounded_total($amount, $order->get_currency()),
+				'currency_code'     => $order->get_currency(),
+			]);
+
+			if ($refund && in_array($refund['status'], ['pending', 'completed'])) {
+				$order->add_meta_data('_ziina_refund_id', $refund['id']);
+				$order->save();
+
+				$note = sprintf(
+					/* translators: 1: refund amount, 2: refund ID */
+					__('Refunded %1$s via Ziina. Refund ID: %2$s', 'ziina'),
+					wc_price($amount),
+					$refund['id']
+				);
+				
+				if ($reason) {
+					/* translators: 1: reason */
+					$note .= sprintf(__('. Reason: %s', 'ziina'), $reason);
+				}
+			
+				$order->add_order_note($note);
+					
+				return true;
+			}
+			
+			return new WP_Error(
+				'refund_failed',
+				'Refund failed: ' . ($refund['message'] ?? 'Unknown error')
+			);
+
+    } catch (Exception $e) {
+			return new WP_Error('refund_error', $e->getMessage());
+    }
 	}
 }
