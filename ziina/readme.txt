@@ -4,7 +4,7 @@ Tags: ziina, payment, gateway, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.2.3
+Stable tag: 1.2.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,6 +15,7 @@ Ziina (زينة) makes it easy for UAE businesses to begin collecting payments f
 
 == Changelog ==
 
+1.2.4 – Bug fixes
 1.2.3 – Added refunds functionality 
 1.2.2 - Declare High-Performance Order Storage compatibility
 1.2.1 - New currencies support

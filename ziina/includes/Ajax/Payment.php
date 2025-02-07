@@ -57,12 +57,6 @@ class Payment extends Base {
 		}
 
 		if ( 'completed' === $payment_intent['status'] ) {
-			// If first attempt of payment failed; order is in cancelled status
-			if ( $order->get_status() === 'cancelled' ) {
-				// restore order, because payment was successful
-				$order->update_status('pending', 'Order restored after successful payment');
-			}
-
 			if ( $order->payment_complete() ) {
 				wp_redirect( $order->get_checkout_order_received_url() );
 				die();
