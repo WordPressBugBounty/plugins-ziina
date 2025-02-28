@@ -10,7 +10,7 @@
  * WC tested up to: 8.7.0
  * Requires at least: 5.7
  * Requires PHP: 8.1
- * Version: 1.2.6
+ * Version: 1.2.7
  *
  * @package ZiinaPayment
  */
@@ -46,7 +46,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	public $version = '1.2.6';
+	public $version = '1.2.7';
 
 	/**
 	 * Plugin url
@@ -303,19 +303,22 @@ class Main {
 	}
 
 	public function handle_error($errno, $errstr, $errfile, $errline) {
-		ZiinaLogger::error("PHP error occured", [
-			'error_type'	=> $errno,
-			'error_message' => $errstr,
-			'error_file' 		=> $errfile,
-			'error_line' 		=> $errline
-		]);
+		if (stripos($errfile, 'ziina') !== false) {
+			ZiinaLogger::error("PHP error occured", [
+				'error_type'	=> $errno,
+				'error_message' => $errstr,
+				'error_file' 		=> $errfile,
+				'error_line' 		=> $errline
+			]);
+		}
 
     return false;
 	}
 
 	public function handle_fatal_error() {
     $error = error_get_last();
-    if ($error !== null) {
+
+    if ($error !== null && stripos($error['file'], 'ziina') !== false) {
 			ZiinaLogger::fatal("Fatal error", [
 				'error_type' => $error['type'],
 				'error_message' => $error['message'],
