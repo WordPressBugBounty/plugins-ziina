@@ -9,9 +9,11 @@ namespace ZiinaPayment;
 
 use Exception;
 use WC_Payment_Gateway;
+use ZiinaPayment\Entities\ZiinaPayment;
 use Ramsey\Uuid\Uuid;
 use WP_Error;
 use WC_Logger;
+use ZiinaPayment\Logger\Main as ZiinaLogger;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -39,6 +41,7 @@ class Gateway extends WC_Payment_Gateway {
 		$this->description = $this->get_option( 'description' );
 		$this->enabled     = $this->get_option( 'enabled' );
 
+		add_action('rest_api_init', array($this, 'register_webhook_handler'));
 		add_action(
 			'woocommerce_update_options_payment_gateways_' . $this->id,
 			array(
@@ -149,12 +152,14 @@ class Gateway extends WC_Payment_Gateway {
     $order = wc_get_order( $order_id );
     
     if (!$order) {
+			ZiinaLogger::error('Order not found', ['order_id' => $order_id]);
 			return new WP_Error('invalid_order', 'Order not found');
     }
 
     $payment_intent_id = $order->get_meta('_ziina_payment_id');
     
     if ( empty($payment_intent_id) ) {
+			ZiinaLogger::error('Order not found', ['payment_intent_id' => $payment_intent_id]);
 			return new WP_Error('invalid_payment', 'Payment information not found');
     }
 
@@ -188,13 +193,99 @@ class Gateway extends WC_Payment_Gateway {
 				return true;
 			}
 			
+			ZiinaLogger::error('Refund failed', [
+				'order_id' => $order_id,
+				'payment_intent_id' => $payment_intent_id,
+				'message' => $refund["message"]
+			]);
+
 			return new WP_Error(
 				'refund_failed',
 				'Refund failed: ' . ($refund['message'] ?? 'Unknown error')
 			);
 
     } catch (Exception $e) {
+			ZiinaLogger::error('Refund error', [
+				'order_id' => $order_id,
+				'message' => $e->getMessage()
+			]);
 			return new WP_Error('refund_error', $e->getMessage());
     }
+	}
+
+	// Registers rest endpoint on plugin side to handle Webhooks from Ziina server
+	public function register_webhook_handler() {
+		register_rest_route('ziina-webhook', '/handler', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'process_webhook'),
+			'permission_callback' => '__return_true'
+		));
+
+		if (!$this->get_option('ziina_webhook_registered')) {
+			$this->register_webhook_on_ziina_server();
+		}
+	}
+
+	// Creates webhook on Ziina side so that Ziina knows where to send webhooks
+	public function register_webhook_on_ziina_server() {
+		try {
+			$webhook_url = get_rest_url(null, 'ziina-webhook/handler');	
+			$response = ziina_payment()->api()->register_webhook($webhook_url);
+
+			if (isset($response["success"]) && $response["success"] === true) {
+				$this->update_option('ziina_webhook_registered', true);
+				ZiinaLogger::info('Webhook registered', $response);
+			} else {
+				ZiinaLogger::error('Registering webhook on Ziina server was not successful', $response);
+				new WP_Error('Error while registering webhook on Ziina server');
+			}
+		} catch ( Exception $e ) {
+			ZiinaLogger::error('Error while registering webhook on Ziina server', ['message' => $e->getMessage()]);
+			new WP_Error('Error while registering webhook on Ziina server', $e->getMessage());
+		}
+	}
+
+	public function has_valid_signature($request) {
+		$raw_body = $request->get_body();
+    $signature = $request->get_header('X-Hmac-Signature');
+
+		if (empty($signature)) {
+			ZiinaLogger::warn('Invalid or missing webhook signature', ['signature' => $signature]);
+			return new WP_Error('Invalid signature', 'Missing signature', ['status' => 400]);
+		}
+
+		$secret_key = ziina_payment()->get_setting('authorization_token') ?? '';
+
+		$calculated_signature = hash_hmac(
+			'sha256',
+			$raw_body,
+			$secret_key,
+			false
+		);
+
+		return hash_equals($signature, $calculated_signature);
+	}
+
+	public function process_webhook($request) {
+		if (!$this->has_valid_signature($request)) {
+			ZiinaLogger::warn('Hash is invalid or missing webhook signature', ['request' => $request]);
+			return new WP_Error('Invalid signature', 'Missing signature', ['status' => 400]);
+		}
+
+		$body = $request->get_json_params();
+
+		try {
+			$event = $body['event'];
+			$data = $body['data'];
+
+			if ($event === "payment_intent.status.updated" && $data["status"] === "completed") {
+				$payment_id = $data["id"];
+				$order = ZiinaPayment::by_payment_id( $data["id"] )->order();
+				$order->payment_complete();
+			}
+		} catch ( Exception $e ) {
+			ZiinaLogger::error('Webhook processing error', ['message' => $e->getMessage()]);
+			return new WP_Error('Webhook processing error', $e->getMessage());
+		}
 	}
 }

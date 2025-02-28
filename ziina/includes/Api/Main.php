@@ -10,6 +10,7 @@ namespace ZiinaPayment\Api;
 use Exception;
 use ZiinaPayment\Ajax\Payment;
 use ZiinaPayment\Entities\ZiinaPayment;
+use ZiinaPayment\Logger\Main as ZiinaLogger;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -222,42 +223,43 @@ class Main {
 			),
 		);
 
-		ziina_payment()->log(
-			array(
-				'url'    => $url,
-				'method' => $method,
-				'body'   => $body,
-				'params' => $params,
-			)
+		$log_params = array(
+			'url'    => $url,
+			'method' => $method,
+			'body'   => $body,
+			'params' => $params,
 		);
+
+		ziina_payment()->log($log_params);
+		ZiinaLogger::info('Sending request', $log_params);
 
 		$res = wp_remote_request( $url, $params );
 
 		if ( is_wp_error( $res ) ) {
-			ziina_payment()->log(
-				array(
-					'error' => $res->get_error_message(),
-				)
+			$wp_error_log = array(
+				'error' => $res->get_error_message(),
 			);
+			ziina_payment()->log($wp_error_log);
+			ZiinaLogger::error('Wordpress error', $wp_error_log);
 
 			throw new Exception( esc_html( $res->get_error_message() ) );
 		}
 
-		ziina_payment()->log(
-			array(
-				'response' => $res,
-			)
+		$response_log = array(
+			'response' => $res,
 		);
+		ZiinaLogger::info('Received response from Ziina API', $response_log);
+		ziina_payment()->log($response_log);
 
 		$res_body = json_decode( $res['body'], true );
 
 		if ( ! empty( $res['body'] ) && is_null( $res_body ) ) {
-			ziina_payment()->log(
-				array(
-					'error' => 'wrong body',
-					'body'  => $res['body'],
-				)
+			$wrong_body_log = array(
+				'error' => 'wrong body',
+				'body'  => $res['body'],
 			);
+			ziina_payment()->log($wrong_body_log);
+			ZiinaLogger::error('Api request decoding error', $wrong_body_log);
 
 			throw new Exception( esc_html__( 'Api request decoding error', 'ziina' ) );
 		}
@@ -341,5 +343,50 @@ class Main {
 		$payment_id = ZiinaPayment::by_order( $order )->payment_id();
 
 		return $this->request( "payment_intent/$payment_id" );
+	}
+
+	/**
+	 * Sends logs to Ziina server proxy
+	 */
+	public function log($log_params) {
+		try {
+			$url = $this->api_url . 'log';
+			$version_info = array(
+				'php_version' => phpversion(),
+				'wp_version' => get_bloginfo('version'),
+				'wc_version' => function_exists('WC') ? WC()->version : "not_active",
+				'plugin_version' => ziina_payment()->version,
+			);
+
+			$enhanced_log_params = $log_params;
+			if (isset($enhanced_log_params['data']) && is_array($enhanced_log_params['data'])) {
+				$enhanced_log_params['data'] = array_merge($enhanced_log_params['data'], $version_info);
+			} else {
+				$enhanced_log_params['data'] = $version_info;
+			}
+
+			$request_params = array(
+				'body'    => wp_json_encode( $enhanced_log_params ),
+				'method'  => 'POST',
+				'headers' => array(
+					'Authorization' => "Bearer $this->authorization_token",
+					'Content-Type'  => 'application/json',
+					'Accept'        => 'application/json',
+				),
+			);
+
+			return wp_remote_request( $url, $request_params );
+	  } catch ( Exception $e ) {}
+	}
+	
+	public function register_webhook($webhook_url) {
+		return $this->request('webhook', 'POST', [
+			'url' => $webhook_url,
+			'secret' => $this->authorization_token
+		]);
+	}
+
+	public function delete_webhook() {
+		return $this->request('webhook', 'DELETE');
 	}
 }

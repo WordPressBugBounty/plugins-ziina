@@ -9,13 +9,14 @@
  * WC requires at least: 4.8
  * WC tested up to: 8.7.0
  * Requires at least: 5.7
- * Requires PHP: 7.2
- * Version: 1.2.5
+ * Requires PHP: 8.1
+ * Version: 1.2.6
  *
  * @package ZiinaPayment
  */
 
 namespace ZiinaPayment;
+use ZiinaPayment\Logger\Main as ZiinaLogger;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -45,7 +46,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	public $version = '1.2.5';
+	public $version = '1.2.6';
 
 	/**
 	 * Plugin url
@@ -100,6 +101,11 @@ class Main {
 		require_once 'vendor/autoload.php';
 
 		load_plugin_textdomain( 'ziina', false, $this->plugin_path . 'languages/' );
+
+		add_action('plugins_loaded', function() {
+			set_error_handler([$this, 'handle_error'], E_ALL);
+			register_shutdown_function([$this, 'handle_fatal_error']);
+		});
 
 		add_action( 'plugins_loaded', array( $this, 'action_plugins_loaded' ) );
 		add_action( 'before_woocommerce_init', array( $this, 'before_woocommerce_hpos' ) );
@@ -178,6 +184,8 @@ class Main {
 	 * Deactivation hook
 	 */
 	public function deactivation_hook() {
+		$this->api()->delete_webhook();
+		$this->gateway()->update_option('ziina_webhook_registered', false);
 	}
 
 	/**
@@ -292,6 +300,29 @@ class Main {
 		}
 
 		return self::$instance;
+	}
+
+	public function handle_error($errno, $errstr, $errfile, $errline) {
+		ZiinaLogger::error("PHP error occured", [
+			'error_type'	=> $errno,
+			'error_message' => $errstr,
+			'error_file' 		=> $errfile,
+			'error_line' 		=> $errline
+		]);
+
+    return false;
+	}
+
+	public function handle_fatal_error() {
+    $error = error_get_last();
+    if ($error !== null) {
+			ZiinaLogger::fatal("Fatal error", [
+				'error_type' => $error['type'],
+				'error_message' => $error['message'],
+				'error_file' => $error['file'],
+				'error_line' => $error['line']
+			]);
+    }
 	}
 }
 

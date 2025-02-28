@@ -8,6 +8,7 @@
 namespace ZiinaPayment\Ajax;
 
 use Exception;
+use ZiinaPayment\Logger\Main as ZiinaLogger;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -49,22 +50,27 @@ class Payment extends Base {
 		try {
 			$payment_intent = ziina_payment()->api()->get_payment_intent( $order_id );
 		} catch ( Exception $e ) {
+			ZiinaLogger::error('Api request error. Try again or contact us', $payment_intent);
 			wp_die( esc_html__( 'Api request error. Try again or contact us', 'ziina' ) );
 		}
 
 		if ( empty( $payment_intent ) ) {
+			ZiinaLogger::error('Wrong payment id', $payment_intent);
 			wp_die( esc_html__( 'Wrong payment id', 'ziina' ) );
 		}
 
 		if ( 'completed' === $payment_intent['status'] ) {
 			if ( $order->payment_complete() ) {
+				ZiinaLogger::info("Payment completed. Order $order_id status updated", $payment_intent);
 				wp_redirect( $order->get_checkout_order_received_url() );
 				die();
 			} else {
+				ZiinaLogger::error('Payment not completed. Reload page or contact us', $payment_intent);
 				wp_die( esc_html__( 'Payment not completed. Reload page or contact us', 'ziina' ) );
 			}
 		}
 
+		ZiinaLogger::error('Payment error. Try again or contact us', $payment_intent);
 		wc_add_notice(
 			__( 'Payment error. Try again or contact us', 'ziina' ),
 			'error'
