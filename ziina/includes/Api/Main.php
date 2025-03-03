@@ -288,6 +288,10 @@ class Main {
 	 * @throws Exception If request error.
 	 */
 	public function create_payment_intent( $order_id ): string {
+		if (empty($this->authorization_token)) {
+			throw new Exception( esc_html__( "We couldn't process your payment because this payment option isn't set up correctly. Contact the store to complete your order.", 'ziina' ) );
+		}
+
 		$order = wc_get_order( $order_id );
 
 		ini_set("serialize_precision", -1);

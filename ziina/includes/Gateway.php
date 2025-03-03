@@ -229,6 +229,11 @@ class Gateway extends WC_Payment_Gateway {
 	// Creates webhook on Ziina side so that Ziina knows where to send webhooks
 	public function register_webhook_on_ziina_server() {
 		try {
+			$api_token = ziina_payment()->get_setting('authorization_token') ?? '';
+			if (empty($api_token)) {
+				return;
+			}
+
 			$webhook_url = get_rest_url(null, 'ziina-webhook/handler');	
 			$response = ziina_payment()->api()->register_webhook($webhook_url);
 
