@@ -349,6 +349,10 @@ class Main {
 	 * Sends logs to Ziina server proxy
 	 */
 	public function log($log_params) {
+		if ( empty($this->authorization_token) ) {
+			return;
+		}
+
 		try {
 			$url = $this->api_url . 'log';
 			$version_info = array(
