@@ -10,13 +10,12 @@
  * WC tested up to: 8.7.0
  * Requires at least: 5.7
  * Requires PHP: 8.1
- * Version: 1.2.9
+ * Version: 1.2.10
  *
  * @package ZiinaPayment
  */
 
 namespace ZiinaPayment;
-use ZiinaPayment\Logger\Main as ZiinaLogger;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -46,7 +45,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	public $version = '1.2.9';
+	public $version = '1.2.10';
 
 	/**
 	 * Plugin url
@@ -304,7 +303,7 @@ class Main {
 
 	public function handle_error($errno, $errstr, $errfile, $errline) {
 		if (stripos($errfile, 'ziina') !== false) {
-			ZiinaLogger::error("PHP error occured", [
+			\ZiinaPayment\Logger\Main::error("PHP error occured", [
 				'error_type'	=> $errno,
 				'error_message' => $errstr,
 				'error_file' 		=> $errfile,
@@ -319,7 +318,7 @@ class Main {
     $error = error_get_last();
 
     if ($error !== null && stripos($error['file'], 'ziina') !== false) {
-			ZiinaLogger::fatal("Fatal error", [
+			\ZiinaPayment\Logger\Main::fatal("Fatal error", [
 				'error_type' => $error['type'],
 				'error_message' => $error['message'],
 				'error_file' => $error['file'],
