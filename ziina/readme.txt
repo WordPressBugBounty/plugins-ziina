@@ -4,7 +4,7 @@ Tags: ziina, payment, gateway, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.2.10
+Stable tag: 1.2.11
 License: GPL-2.0-or-later
 Plugin URI: https://ziina.com
 Documentation: https://docs.ziina.com/woocommerce

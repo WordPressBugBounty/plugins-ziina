@@ -195,11 +195,35 @@ class Main {
 	private $authorization_token;
 
 	/**
+	 * @var int
+	 */
+	private const RATE_LIMIT_DURATION = 60; // 60 seconds
+
+	/**
+	 * @var string
+	 */
+	private const RATE_LIMIT_OPTION = 'ziina_payment_unauthorized_time';
+
+	/**
 	 * Api constructor.
 	 */
 	public function __construct() {
 		$this->is_test             = ziina_payment()->get_setting( 'is_test' ) ?? true;
 		$this->authorization_token = ziina_payment()->get_setting( 'authorization_token' ) ?? '';
+	}
+
+	/**
+	 * Check if we're currently rate limited due to unauthorized errors
+	 *
+	 * @return bool
+	 */
+	private function is_rate_limited(): bool {
+		$last_error_time = get_transient(self::RATE_LIMIT_OPTION);
+		if ($last_error_time === false) {
+			return false;
+		}
+
+		return (time() - $last_error_time) < self::RATE_LIMIT_DURATION;
 	}
 
 	/**
@@ -211,6 +235,11 @@ class Main {
 	 * @throws Exception If request error.
 	 */
 	private function request( string $endpoint, $method = 'GET', $body = array() ): array {
+		if ($this->is_rate_limited()) {
+			$last_error_time = get_transient(self::RATE_LIMIT_OPTION);
+			throw new Exception( esc_html__( 'Too many unauthorized requests. Please try again in a minute.', 'ziina' ) );
+		}
+
 		$url = $this->api_url . $endpoint;
 
 		$params = array(
@@ -250,6 +279,12 @@ class Main {
 		);
 		ZiinaLogger::info('Received response from Ziina API', $response_log);
 		ziina_payment()->log($response_log);
+
+		if (wp_remote_retrieve_response_code($res) === 401) {
+			$current_time = time();
+			set_transient(self::RATE_LIMIT_OPTION, $current_time, self::RATE_LIMIT_DURATION);
+			throw new Exception( esc_html__( 'Unauthorized request. Please check your API credentials.', 'ziina' ) );
+		}
 
 		$res_body = json_decode( $res['body'], true );
 
