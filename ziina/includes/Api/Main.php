@@ -246,9 +246,10 @@ class Main {
 			'body'    => empty( $body ) ? null : wp_json_encode( $body ),
 			'method'  => $method,
 			'headers' => array(
-				'Authorization' => "Bearer $this->authorization_token",
-				'Content-Type'  => 'application/json',
-				'Accept'        => 'application/json',
+				'Authorization'					=> "Bearer $this->authorization_token",
+				'Content-Type'  				=> 'application/json',
+				'Accept'        				=> 'application/json',
+				'ziina-device-platform' => 'woocommerce',
 			),
 		);
 
@@ -412,9 +413,10 @@ class Main {
 				'body'    => wp_json_encode( $enhanced_log_params ),
 				'method'  => 'POST',
 				'headers' => array(
-					'Authorization' => "Bearer $this->authorization_token",
-					'Content-Type'  => 'application/json',
-					'Accept'        => 'application/json',
+					'Authorization' 				=> "Bearer $this->authorization_token",
+					'Content-Type'  				=> 'application/json',
+					'Accept'        				=> 'application/json',
+					'ziina-device-platform' => 'woocommerce',
 				),
 			);
 
