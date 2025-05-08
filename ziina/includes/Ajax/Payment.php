@@ -60,6 +60,8 @@ class Payment extends Base {
 		}
 
 		if ( 'completed' === $payment_intent['status'] ) {
+			\ZiinaPayment\Admin\OrderDetails::save_payment_details_to_order($order, $payment_intent);
+			
 			if ( $order->payment_complete() ) {
 				ZiinaLogger::info("Payment completed. Order $order_id status updated", $payment_intent);
 				wp_redirect( $order->get_checkout_order_received_url() );

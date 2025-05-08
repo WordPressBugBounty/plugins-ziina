@@ -10,7 +10,7 @@
  * WC tested up to: 8.7.0
  * Requires at least: 5.7
  * Requires PHP: 8.1
- * Version: 1.2.12
+ * Version: 1.2.13
  *
  * @package ZiinaPayment
  */
@@ -45,7 +45,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	public $version = '1.2.12';
+	public $version = '1.2.13';
 
 	/**
 	 * Plugin url
@@ -149,6 +149,10 @@ class Main {
 		}
 
 		new Integrations\Main();
+
+		if ( is_admin() ) {
+			new Admin\OrderDetails();
+		}
 	}
 
 	/**
@@ -303,12 +307,18 @@ class Main {
 
 	public function handle_error($errno, $errstr, $errfile, $errline) {
 		if (stripos($errfile, 'ziina') !== false) {
-			\ZiinaPayment\Logger\Main::error("PHP error occured", [
-				'error_type'	=> $errno,
-				'error_message' => $errstr,
-				'error_file' 		=> $errfile,
-				'error_line' 		=> $errline
-			]);
+			if (class_exists('\\ZiinaPayment\\Logger\\Main')) {
+				\ZiinaPayment\Logger\Main::init($this->api());
+				\ZiinaPayment\Logger\Main::error("PHP error occured", [
+					'error_type'	=> $errno,
+					'error_message' => $errstr,
+					'error_file' 		=> $errfile,
+					'error_line' 		=> $errline
+				]);
+			} else {
+				// Fallback to WC logging if Logger not available
+				$this->log("PHP error: $errstr in $errfile on line $errline", 'handle_error');
+			}
 		}
 
     return false;
@@ -318,12 +328,18 @@ class Main {
     $error = error_get_last();
 
     if ($error !== null && stripos($error['file'], 'ziina') !== false) {
-			\ZiinaPayment\Logger\Main::fatal("Fatal error", [
-				'error_type' => $error['type'],
-				'error_message' => $error['message'],
-				'error_file' => $error['file'],
-				'error_line' => $error['line']
-			]);
+			if (class_exists('\\ZiinaPayment\\Logger\\Main')) {
+				\ZiinaPayment\Logger\Main::init($this->api());
+				\ZiinaPayment\Logger\Main::fatal("Fatal error", [
+					'error_type' => $error['type'],
+					'error_message' => $error['message'],
+					'error_file' => $error['file'],
+					'error_line' => $error['line']
+				]);
+			} else {
+				// Fallback to WC logging if Logger not available
+				$this->log("Fatal error: {$error['message']} in {$error['file']} on line {$error['line']}", 'handle_fatal_error');
+			}
     }
 	}
 }

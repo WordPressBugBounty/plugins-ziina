@@ -14,6 +14,7 @@ use Ramsey\Uuid\Uuid;
 use WP_Error;
 use WC_Logger;
 use ZiinaPayment\Logger\Main as ZiinaLogger;
+use ZiinaPayment\Admin\OrderDetails;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -230,11 +231,13 @@ class Gateway extends WC_Payment_Gateway {
 	public function register_webhook_on_ziina_server() {
 		try {
 			$api_token = ziina_payment()->get_setting('authorization_token') ?? '';
-			if (empty($api_token)) {
+			$webhook_url = get_rest_url(null, 'ziina-webhook/handler');
+
+			// if token is empty or webhook url is localhost request won't succeed
+			if (empty($api_token) || strpos($webhook_url, 'http://localhost') === 0) {
 				return;
 			}
 
-			$webhook_url = get_rest_url(null, 'ziina-webhook/handler');	
 			$response = ziina_payment()->api()->register_webhook($webhook_url);
 
 			if (isset($response["success"]) && $response["success"] === true) {
@@ -286,7 +289,13 @@ class Gateway extends WC_Payment_Gateway {
 			if ($event === "payment_intent.status.updated" && $data["status"] === "completed") {
 				$payment_id = $data["id"];
 				$order = ZiinaPayment::by_payment_id( $data["id"] )->order();
-				$order->payment_complete();
+
+				if ($order) {
+					$order->payment_complete();
+					OrderDetails::save_payment_details_to_order($order, $data);
+				} else {
+					ZiinaLogger::error('Order not found', ['data' => $data]);
+				}
 			}
 		} catch ( Exception $e ) {
 			ZiinaLogger::error('Webhook processing error', ['message' => $e->getMessage()]);
