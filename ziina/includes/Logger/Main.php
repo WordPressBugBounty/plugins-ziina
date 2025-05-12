@@ -18,10 +18,11 @@ class Main {
 
   /**
    * Initialize the logger
-   * 
-   * @param ApiMain $api Instance of the API class (optional)
+   *
+   * @param ApiMain|null $api Instance of the API class (nullable)
+   * @return void
    */
-  public static function init(ApiMain $api = null) {
+  public static function init(?ApiMain $api = null): void {
     self::$api = $api ?: new ApiMain();
   }
 
