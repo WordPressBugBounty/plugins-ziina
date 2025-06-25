@@ -320,10 +320,10 @@ class Main {
 	/**
 	 * @param mixed $order_id order to create payment.
 	 *
-	 * @return string
+	 * @return array
 	 * @throws Exception If request error.
 	 */
-	public function create_payment_intent( $order_id ): string {
+	public function create_payment_intent( $order_id ): array {
 		if (empty($this->authorization_token)) {
 			throw new Exception( esc_html__( "We couldn't process your payment because this payment option isn't set up correctly. Contact the store to complete your order.", 'ziina' ) );
 		}
@@ -361,9 +361,12 @@ class Main {
 
 		if ( ! empty( $payment_intent ) && ! empty( $payment_intent['id'] ) ) {
 			ZiinaPayment::by_order( $order )->set_payment_id( $payment_intent['id'] );
-			return $payment_intent['redirect_url'];
+			return $payment_intent;
 		}
 
+		ZiinaLogger::error('Api request error', [
+			'payment_intent' => $payment_intent,
+		]);
 		throw new Exception( esc_html__( 'Api request error', 'ziina' ) );
 	}
 

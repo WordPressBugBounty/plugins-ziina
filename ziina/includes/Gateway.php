@@ -128,7 +128,12 @@ class Gateway extends WC_Payment_Gateway {
 			}
 		}
 
-		$redirect_url = ziina_payment()->api()->create_payment_intent( $order_id );
+		$payment_intent = ziina_payment()->api()->create_payment_intent( $order_id );
+		$redirect_url = $payment_intent['redirect_url'];
+
+		$order = wc_get_order( $order_id );
+		$order->set_transaction_id( $payment_intent['id'] );
+		$order->save();
 
 		if ( is_wc_endpoint_url( 'order-pay' ) ) {
 			wp_redirect( $redirect_url );
@@ -156,6 +161,10 @@ class Gateway extends WC_Payment_Gateway {
 			ZiinaLogger::error('Order not found', ['order_id' => $order_id]);
 			return new WP_Error('invalid_order', 'Order not found');
     }
+
+		if (floatval($amount) <= 0) {
+			return new WP_Error('invalid_amount', 'Invalid refund amount. Please set the value');
+		}
 
     $payment_intent_id = $order->get_meta('_ziina_payment_id');
     
