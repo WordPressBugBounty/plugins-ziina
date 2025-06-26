@@ -367,6 +367,11 @@ class Main {
 		ZiinaLogger::error('Api request error', [
 			'payment_intent' => $payment_intent,
 		]);
+
+		if (isset($payment_intent['code']) && $payment_intent['code'] === 'CURRENCY_NOT_SUPPORTED') {
+			throw new Exception( esc_html__( 'Currency you set for store is not supported. Please set one of supported currencies.', 'ziina' ) );
+		}
+
 		throw new Exception( esc_html__( 'Api request error', 'ziina' ) );
 	}
 

@@ -10,7 +10,7 @@
  * WC tested up to: 8.7.0
  * Requires at least: 5.7
  * Requires PHP: 8.1
- * Version: 1.2.15
+ * Version: 1.2.16
  *
  * @package ZiinaPayment
  */
@@ -45,7 +45,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	public $version = '1.2.15';
+	public $version = '1.2.16';
 
 	/**
 	 * Plugin url
