@@ -368,8 +368,8 @@ class Main {
 			'payment_intent' => $payment_intent,
 		]);
 
-		if (isset($payment_intent['code']) && $payment_intent['code'] === 'CURRENCY_NOT_SUPPORTED') {
-			throw new Exception( esc_html__( 'Currency you set for store is not supported. Please set one of supported currencies.', 'ziina' ) );
+		if (isset($payment_intent['code'])) {
+			$this->display_payment_intent_creation_error($payment_intent['code']);
 		}
 
 		throw new Exception( esc_html__( 'Api request error', 'ziina' ) );
@@ -377,6 +377,22 @@ class Main {
 
 	public function create_refund($params) {
     return $this->request('refund', 'POST', $params);
+	}
+
+	public function display_payment_intent_creation_error($code) {
+		if ($code === 'CURRENCY_NOT_SUPPORTED') {
+			throw new Exception( esc_html__( 'Currency you set for store is not supported. Please set one of supported currencies.', 'ziina' ) );
+		}
+
+		if ($code === 'RECIPIENT_NOT_ACTIVE_WALLET') {
+			throw new Exception( esc_html__( 'The account you are using has not completed onboarding. Please provide all required information inside the Ziina app to accept payments.', 'ziina' ) );
+		}
+
+		if ($code === 'TRANSFER_UNDER_MINIMUM') {
+			throw new Exception( esc_html__( 'Payments must be at least 2 AED. Please try again with a larger amount.', 'ziina' ) );
+		}
+
+		throw new Exception( esc_html__( 'Api request error', 'ziina' ) );
 	}
 
 	/**
