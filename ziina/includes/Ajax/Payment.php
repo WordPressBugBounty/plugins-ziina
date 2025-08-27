@@ -9,6 +9,7 @@ namespace ZiinaPayment\Ajax;
 
 use Exception;
 use ZiinaPayment\Logger\Main as ZiinaLogger;
+use ZiinaPayment\Entities\ZiinaPayment as ZiinaPaymentEntity;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -62,14 +63,16 @@ class Payment extends Base {
 		if ( 'completed' === $payment_intent['status'] ) {
 			\ZiinaPayment\Admin\OrderDetails::save_payment_details_to_order($order, $payment_intent);
 			
-			if ( $order->payment_complete() ) {
-				ZiinaLogger::info("Payment completed. Order $order_id status updated", $payment_intent);
-				wp_redirect( $order->get_checkout_order_received_url() );
-				die();
-			} else {
+			$payment_completed_result = ZiinaPaymentEntity::maybe_complete_payment($order);
+
+			if ( $payment_completed_result instanceof Exception ) {
 				ZiinaLogger::error('Payment not completed. Reload page or contact us', $payment_intent);
 				wp_die( esc_html__( 'Payment not completed. Reload page or contact us', 'ziina' ) );
 			}
+
+			ZiinaLogger::info("Payment completed. Order $order_id status updated", $payment_intent);
+			wp_redirect( $order->get_checkout_order_received_url() );
+			die();
 		}
 
 		ZiinaLogger::error('Payment error. Try again or contact us', $payment_intent);

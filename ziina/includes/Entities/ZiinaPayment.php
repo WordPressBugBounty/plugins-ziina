@@ -6,6 +6,7 @@
  */
 
 namespace ZiinaPayment\Entities;
+use ZiinaPayment\Logger\Main as ZiinaLogger;
 
 use WC_Order;
 
@@ -64,6 +65,58 @@ class ZiinaPayment {
 
 		return $instance;
 	}
+
+	/**
+	 * Try to complete payment.
+	 * If lock was already set before, return false and do nothing.
+	 * If lock was not set before, set lock and complete payment.
+	 * If payment completion fails, delete lock and return exception.
+	 * If payment completion succeeds, return true.
+	 *
+	 * @param WC_Order $order
+	 * @return bool | Exception
+	 */
+	public static function maybe_complete_payment( WC_Order $order ): bool | Exception {
+		$order_id = $order->get_id();
+		global $wpdb;
+	
+		$table = $wpdb->postmeta;
+		$meta_key = '_ziina_payment_completed_lock';
+	
+		// try to insert lock atomically
+		$inserted = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT IGNORE INTO {$table} (post_id, meta_key, meta_value) VALUES (%d, %s, %s)",
+				$order_id,
+				$meta_key,
+				'1'
+			)
+		);
+	
+		// if nothing was inserted, lock was already set
+		if ($inserted === 0) {
+			return false;
+		}
+	
+		try {
+			$order->payment_complete();
+			return true;
+		} catch ( Exception $e ) {
+			// delete lock
+			$wpdb->delete( $table, [
+				'post_id'  => $order_id,
+				'meta_key' => $meta_key,
+			] );
+	
+			ZiinaLogger::error('Payment completion error', [
+				'order_id' => $order_id,
+				'message'  => $e->getMessage(),
+			]);
+	
+			return $e;
+		}
+	}
+	
 
 	/**
 	 * @return WC_Order|null

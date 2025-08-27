@@ -299,13 +299,21 @@ class Gateway extends WC_Payment_Gateway {
 				$payment_id = $data["id"];
 				$order = ZiinaPayment::by_payment_id( $data["id"] )->order();
 
-				if ($order) {
-					$order->payment_complete();
-					OrderDetails::save_payment_details_to_order($order, $data);
-				} else {
+				if (!$order) {
 					ZiinaLogger::error('Order not found', ['data' => $data]);
+					return;
+				}
+
+				$order_id = $order->get_id();
+				$payment_completed_result = ZiinaPayment::maybe_complete_payment($order);
+
+				if ($payment_completed_result) {
+					ZiinaLogger::info("Payment completed. Order $order_id status updated by webhook", $data);
+					OrderDetails::save_payment_details_to_order($order, $data);
 				}
 			}
+
+			return new WP_REST_Response(['message' => 'Webhook processed successfully'], 200);
 		} catch ( Exception $e ) {
 			ZiinaLogger::error('Webhook processing error', ['message' => $e->getMessage()]);
 			return new WP_Error('Webhook processing error', $e->getMessage());
