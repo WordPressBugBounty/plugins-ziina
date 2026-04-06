@@ -10,7 +10,7 @@
  * WC tested up to: 8.7.0
  * Requires at least: 5.7
  * Requires PHP: 8.1
- * Version: 1.2.18
+ * Version: 1.2.19
  *
  * @package ZiinaPayment
  */
@@ -45,7 +45,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	public $version = '1.2.18';
+	public $version = '1.2.19';
 
 	/**
 	 * Plugin url
@@ -181,14 +181,27 @@ class Main {
 	 * Activation hook
 	 */
 	public function activation_hook() {
+		if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
+			wp_die(
+					esc_html__( 'Ziina requires WooCommerce to be installed and active. Please install and activate WooCommerce first.', 'ziina' ),
+					esc_html__( 'Plugin Activation Error', 'ziina' ),
+					array( 'back_link' => true )
+			);
+	  }
 	}
 
 	/**
 	 * Deactivation hook
 	 */
 	public function deactivation_hook() {
-		$this->api()->delete_webhook();
-		$this->gateway()->update_option('ziina_webhook_registered', false);
+		try {
+			$this->api()->delete_webhook();
+		} catch ( \Throwable $e ) {}
+
+		$gateway = $this->gateway();
+		if ( $gateway ) {
+			$gateway->update_option( 'ziina_webhook_registered', false );
+		}
 	}
 
 	/**
@@ -228,6 +241,10 @@ class Main {
 	 * @return Gateway|null Gateway instance.
 	 */
 	public function gateway(): ?Gateway {
+		if ( ! function_exists( 'WC' ) || ! WC()->payment_gateways() ) {
+			return null;
+	  }
+
 		return WC()->payment_gateways()->payment_gateways()[ $this->plugin_id ] ?? null;
 	}
 

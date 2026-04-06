@@ -243,6 +243,7 @@ class Main {
 		$url = $this->api_url . $endpoint;
 
 		$params = array(
+			'timeout' => 30,
 			'body'    => empty( $body ) ? null : wp_json_encode( $body ),
 			'method'  => $method,
 			'headers' => array(

@@ -12,6 +12,8 @@ use WC_Payment_Gateway;
 use ZiinaPayment\Entities\ZiinaPayment;
 use Ramsey\Uuid\Uuid;
 use WP_Error;
+use Throwable;
+use WP_REST_Response;
 use WC_Logger;
 use ZiinaPayment\Logger\Main as ZiinaLogger;
 use ZiinaPayment\Admin\OrderDetails;
@@ -254,11 +256,11 @@ class Gateway extends WC_Payment_Gateway {
 				ZiinaLogger::info('Webhook registered', $response);
 			} else {
 				ZiinaLogger::error('Registering webhook on Ziina server was not successful', $response);
-				new WP_Error('Error while registering webhook on Ziina server');
+				return new WP_Error('Error while registering webhook on Ziina server');
 			}
-		} catch ( Exception $e ) {
+		} catch ( Throwable $e ) {
 			ZiinaLogger::error('Error while registering webhook on Ziina server', ['message' => $e->getMessage()]);
-			new WP_Error('Error while registering webhook on Ziina server', $e->getMessage());
+			return new WP_Error('Error while registering webhook on Ziina server', $e->getMessage());
 		}
 	}
 

@@ -2,7 +2,7 @@
     "name": "onepix/woocommerce-gateway-ziina-payment",
     "description": "Accept payments via Ziina Payment",
     "type": "wordpress-plugin",
-    "version": "1.2.18",
+    "version": "1.2.19",
     "autoload": {
         "psr-4": {
             "ZiinaPayment\\": "includes/"

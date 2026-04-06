@@ -4,7 +4,7 @@ Tags: ziina, payment, gateway, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.2.18
+Stable tag: 1.2.19
 License: GPL-2.0-or-later
 Plugin URI: https://ziina.com
 Documentation: https://docs.ziina.com/woocommerce
@@ -17,6 +17,7 @@ Ziina (زينة) makes it easy for UAE businesses to begin collecting payments f
 Documentation for this plugin can be found at https://docs.ziina.com/woocommerce
 
 == Changelog ==
+1.2.19 – Enhanced error handling when WooCommerce is not installed
 1.2.18 – Fixed an issue that could cause stock to be deducted twice under certain conditions
 1.2.17 – Improved messaging for users who haven’t completed onboarding in the Ziina app
 1.2.16 – Improved messaging when user set unsupported currency for store
