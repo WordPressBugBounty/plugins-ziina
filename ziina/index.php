@@ -10,7 +10,7 @@
  * WC tested up to: 8.7.0
  * Requires at least: 5.7
  * Requires PHP: 8.1
- * Version: 1.2.20
+ * Version: 1.2.21
  *
  * @package ZiinaPayment
  */
@@ -45,7 +45,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	public $version = '1.2.20';
+	public $version = '1.2.21';
 
 	/**
 	 * Plugin url
@@ -88,6 +88,13 @@ class Main {
 	 * @var Ajax\Main|null
 	 */
 	private $ajax;
+
+	/**
+	 * Apple Pay domain verification handler.
+	 *
+	 * @var ApplePay\ApplePayDomainVerificationHandler|null
+	 */
+	private $apple_pay_domain_verification_handler = null;
 
 	/**
 	 * Main constructor.
@@ -140,6 +147,19 @@ class Main {
 	}
 
 	/**
+	 * Initialize Apple Pay domain verification handler.
+	 *
+	 * @return ApplePay\ApplePayDomainVerificationHandler
+	 */
+	public function init_apple_pay_domain_verification(): ApplePay\ApplePayDomainVerificationHandler {
+		if ( is_null( $this->apple_pay_domain_verification_handler ) ) {
+			$this->apple_pay_domain_verification_handler = new ApplePay\ApplePayDomainVerificationHandler();
+		}
+
+		return $this->apple_pay_domain_verification_handler;
+	}
+
+	/**
 	 * Disable plugin if Woocommerce not active
 	 */
 	public function action_plugins_loaded() {
@@ -149,6 +169,8 @@ class Main {
 		}
 
 		new Integrations\Main();
+		new Frontend\EmbeddedCheckout();
+		$this->init_apple_pay_domain_verification();
 
 		if ( is_admin() ) {
 			new Admin\OrderDetails();
@@ -187,7 +209,9 @@ class Main {
 					esc_html__( 'Plugin Activation Error', 'ziina' ),
 					array( 'back_link' => true )
 			);
-	  }
+		}
+
+		flush_rewrite_rules();
 	}
 
 	/**
@@ -230,6 +254,8 @@ class Main {
 			$this->settings['authorization_token'] = $gateway->get_option( 'authorization_token' );
 			$this->settings['is_test']             = $is_test;
 			$this->settings['logging']             = $is_test || $gateway->get_option( 'logging' ) === 'yes';
+			$this->settings['checkout_mode']   = $gateway->get_option( 'checkout_mode', Gateway::CHECKOUT_MODE_REDIRECT );
+			$this->settings['embedded_locale'] = $gateway->get_option( 'embedded_locale', '' );
 		}
 
 		return $this->settings[ $name ] ?? null;

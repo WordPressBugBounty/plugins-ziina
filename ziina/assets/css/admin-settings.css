@@ -1,0 +1,177 @@
+tr.ziina-apple-pay-embedded-row.ziina-hidden,
+tr.ziina-embedded-only-row.ziina-hidden {
+	display: none;
+}
+
+.woocommerce table.form-table tr.ziina-apple-pay-embedded-row > td.ziina-apple-pay-embedded-cell {
+	padding: 16px 0 0;
+}
+
+.ziina-apple-pay-panel {
+	margin: 0;
+	padding: 0;
+	max-width: 650px;
+	box-sizing: border-box;
+}
+
+.ziina-apple-pay-embedded {
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.ziina-apple-pay-embedded__title {
+	margin: 0 0 4px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.ziina-apple-pay-embedded__intro {
+	margin: 0 0 12px;
+	color: #646970;
+}
+
+.ziina-apple-pay-notice {
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	box-sizing: border-box;
+	border-radius: 8px;
+}
+
+.ziina-apple-pay-notice p {
+	margin: 0 0 8px;
+}
+
+.ziina-apple-pay-notice p:last-child {
+	margin-bottom: 0;
+}
+
+.ziina-apple-pay-notice.notice-success {
+	background-color: #edfaef;
+	border: 1px solid #68de7c;
+	border-left-width: 4px;
+	border-left-color: #00a32a;
+	color: #1d2327;
+}
+
+.ziina-apple-pay-notice.notice-error {
+	background-color: #fcf0f1;
+	border: 1px solid #d63638;
+	border-left-width: 4px;
+	border-left-color: #d63638;
+	color: #1d2327;
+}
+
+.ziina-apple-pay-steps {
+	display: block;
+	width: 100%;
+	background: #fcf9e8;
+	border: 1px solid #f0d58a;
+	border-radius: 8px;
+	padding: 16px 20px;
+	margin-top: 12px;
+	margin-bottom: 12px;
+	box-sizing: border-box;
+}
+
+.ziina-apple-pay-steps__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	counter-reset: ziina-step;
+}
+
+.ziina-apple-pay-steps__item {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	counter-increment: ziina-step;
+}
+
+.ziina-apple-pay-steps__item + .ziina-apple-pay-steps__item {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #f0d58a;
+}
+
+.ziina-apple-pay-steps__item::before {
+	content: counter(ziina-step);
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+	margin-top: 2px;
+	border-radius: 50%;
+	background: #1d2327;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 24px;
+	text-align: center;
+}
+
+.ziina-apple-pay-steps__content {
+	flex: 1;
+	min-width: 0;
+}
+
+.ziina-apple-pay-steps__label {
+	display: block;
+	margin: 0 0 8px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.ziina-apple-pay-steps__action {
+	margin-bottom: 4px;
+}
+
+.ziina-apple-pay-steps__button {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 6px;
+	width: auto;
+	max-width: 100%;
+	height: auto;
+	min-height: 30px;
+	padding-top: 4px ;
+	padding-bottom: 4px;
+	white-space: normal;
+	text-align: left;
+	line-height: 1.4;
+	box-sizing: border-box;
+}
+
+.ziina-apple-pay-steps__button .dashicons {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	font-size: 18px;
+	line-height: 1;
+}
+
+.ziina-apple-pay-steps__button .dashicons::before {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	line-height: 1;
+}
+
+.ziina-apple-pay-steps__instruction {
+	margin: 0;
+	font-weight: 600;
+	line-height: 1.4;
+	color: #1d2327;
+}
+
+.ziina-apple-pay-steps__status {
+	margin: 8px 0 0;
+}
+
+.ziina-apple-pay-embedded__docs {
+	margin: 0;
+}

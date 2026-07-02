@@ -23,11 +23,17 @@ if (window.wc
     );
     const label = decodeEntities(settings.title) || defaultLabel;
 
+    const embeddedHint =
+        settings.checkout_mode === 'embedded'
+            ? ' ' + __('You will complete payment on the next page.', 'ziina')
+            : '';
+
     /**
      * Content component
      */
     const Content = createElement((props) => {
-        return decodeEntities(settings.description || '');
+        const text = decodeEntities(settings.description || '') + embeddedHint;
+        return createElement('span', null, text);
     }, null);
 
     /**

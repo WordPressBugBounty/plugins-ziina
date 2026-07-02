@@ -128,9 +128,10 @@ final class WooBlocksPaymentMethod extends AbstractPaymentMethodType {
 	 */
 	public function get_payment_method_data(): array {
 		$data = array(
-			'title'       => $this->get_setting( 'title' ),
-			'description' => $this->get_setting( 'description' ),
-			'supports'    => $this->get_supported_features(),
+			'title'         => $this->get_setting( 'title' ),
+			'description'   => $this->get_setting( 'description' ),
+			'supports'      => $this->get_supported_features(),
+			'checkout_mode' => $this->get_setting( 'checkout_mode', 'redirect' ),
 		);
 
 		$data = apply_filters( 'ziina_blocks_payment_method_data', $data, $this );

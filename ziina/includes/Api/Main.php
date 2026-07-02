@@ -24,7 +24,7 @@ class Main {
 	/**
 	 * @var string
 	 */
-	private $api_url = 'https://api-v2.ziina.com/api/';
+	private $api_url;
 
 	/**
 	 * @var array
@@ -210,6 +210,22 @@ class Main {
 	public function __construct() {
 		$this->is_test             = ziina_payment()->get_setting( 'is_test' ) ?? true;
 		$this->authorization_token = ziina_payment()->get_setting( 'authorization_token' ) ?? '';
+		$this->api_url             = $this->resolve_api_url();
+	}
+
+	/**
+	 * Resolve the Ziina API base URL from wp-config or fall back to production.
+	 *
+	 * @return string
+	 */
+	private function resolve_api_url(): string {
+		$default = 'https://api-v2.ziina.com/api/';
+
+		if ( defined( 'ZIINA_API_URL' ) && ZIINA_API_URL ) {
+			return trailingslashit( ZIINA_API_URL );
+		}
+
+		return $default;
 	}
 
 	/**

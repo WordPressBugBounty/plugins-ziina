@@ -1,0 +1,151 @@
+/*
+ * Pay page grid: left column stacks order table + privacy; right column centers the widget.
+ */
+body.ziina-embedded-pay .woocommerce-pay,
+body.ziina-embedded-pay form.woocommerce-form-pay {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.ziina-embedded-pay-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, min(400px, 100%));
+	grid-template-rows: auto;
+	gap: 2rem;
+	align-items: center;
+	width: 100%;
+	max-width: 100%;
+	margin: 1.5em 0;
+	box-sizing: border-box;
+}
+
+.ziina-embedded-pay-layout__order_summary {
+	grid-column: 1;
+	grid-row: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+	min-width: 0;
+	align-self: center;
+}
+
+.ziina-embedded-pay-layout__order {
+	min-width: 0;
+}
+
+.ziina-embedded-pay-layout__order .shop_table {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	table-layout: fixed;
+}
+
+.ziina-embedded-pay-layout__order .shop_table th,
+.ziina-embedded-pay-layout__order .shop_table td {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+.ziina-embedded-pay-layout__order .shop_table td:last-child {
+	white-space: normal;
+}
+
+.ziina-embedded-pay-layout__order_summary > #payment,
+.ziina-embedded-pay-layout__order_summary #payment.woocommerce-Payment {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+.ziina-embedded-pay-layout__widget {
+	grid-column: 2;
+	grid-row: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	max-width: 400px;
+	justify-self: center;
+	align-self: center;
+	box-sizing: border-box;
+}
+
+.ziina-embedded-checkout-wrapper {
+	display: block;
+	margin: 0;
+	width: 100%;
+	max-width: 400px;
+	/* Ziina embedded widget height (no tips); keep in sync with Gateway::EMBEDDED_WIDGET_HEIGHT */
+	height: 740px;
+	box-sizing: border-box;
+}
+
+.ziina-embedded-checkout-iframe {
+	display: block;
+	width: 100%;
+	max-width: 400px;
+	height: 100%;
+	border: 0;
+	box-sizing: border-box;
+}
+
+.ziina-embedded-checkout-notice {
+	margin-top: 1em;
+	padding: 0.75em 1em;
+	max-width: 400px;
+	width: 100%;
+	color: #b32d2e;
+	background: #fcf0f1;
+	border-left: 4px solid #b32d2e;
+	box-sizing: border-box;
+}
+
+body.ziina-embedded-pay .woocommerce-pay .form-row.place-order {
+	margin-top: 0;
+}
+
+body.ziina-embedded-pay #payment .wc_payment_methods,
+body.ziina-embedded-pay #payment .payment_methods,
+body.ziina-embedded-pay #payment .payment_method_ziina {
+	display: none !important;
+}
+
+@media (max-width: 900px) {
+	.ziina-embedded-pay-layout {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto auto;
+		align-items: stretch;
+	}
+}
+
+@media (max-width: 781px) {
+	.ziina-embedded-pay-layout {
+		gap: 1rem;
+	}
+
+	.ziina-embedded-pay-layout__order_summary {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: stretch;
+	}
+
+	.ziina-embedded-pay-layout__widget {
+		grid-column: 1;
+		grid-row: 2;
+		width: 100%;
+		max-width: 100%;
+		justify-self: stretch;
+		align-self: stretch;
+	}
+
+	.ziina-embedded-checkout-wrapper {
+		max-width: 100%;
+		height: 740px;
+	}
+
+	.ziina-embedded-checkout-iframe {
+		max-width: 100%;
+	}
+}
