@@ -5,6 +5,8 @@
  * @package ZiinaPayment
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use ZiinaPayment\Main;
 
 /**

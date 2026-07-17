@@ -604,14 +604,19 @@ class Gateway extends WC_Payment_Gateway {
 
 	public function has_valid_signature($request) {
 		$raw_body = $request->get_body();
-    $signature = $request->get_header('X-Hmac-Signature');
+		$signature = $request->get_header('X-Hmac-Signature');
 
 		if (empty($signature)) {
 			ZiinaLogger::warn('Invalid or missing webhook signature', ['signature' => $signature]);
-			return new WP_Error('Invalid signature', 'Missing signature', ['status' => 400]);
+			return false;
 		}
 
 		$secret_key = ziina_payment()->get_setting('authorization_token') ?? '';
+
+		if (empty($secret_key)) {
+			ZiinaLogger::warn('Webhook signature check failed: empty authorization token');
+			return false;
+		}
 
 		$calculated_signature = hash_hmac(
 			'sha256',
@@ -624,9 +629,9 @@ class Gateway extends WC_Payment_Gateway {
 	}
 
 	public function process_webhook($request) {
-		if (!$this->has_valid_signature($request)) {
+		if (true !== $this->has_valid_signature($request)) {
 			ZiinaLogger::warn('Hash is invalid or missing webhook signature', ['request' => $request]);
-			return new WP_Error('Invalid signature', 'Missing signature', ['status' => 400]);
+			return new WP_Error('Invalid signature', 'Missing or invalid signature', ['status' => 400]);
 		}
 
 		$body = $request->get_json_params();

@@ -8,9 +8,9 @@
  * Domain Path: /languages
  * WC requires at least: 4.8
  * WC tested up to: 8.7.0
- * Requires at least: 5.7
+ * Requires at least: 6.0
  * Requires PHP: 8.1
- * Version: 1.2.21
+ * Version: 1.2.22
  *
  * @package ZiinaPayment
  */
@@ -45,7 +45,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	public $version = '1.2.21';
+	public $version = '1.2.22';
 
 	/**
 	 * Plugin url

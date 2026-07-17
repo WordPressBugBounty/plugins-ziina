@@ -75,7 +75,7 @@ class OrderDetails {
         <td class="label"><?php esc_html_e('Ziina Fee:', 'ziina'); ?></td>
         <td width="1%"></td>
         <td class="total">
-          <?php echo wc_price($fee_amount_formatted, array('currency' => $order->get_currency())); ?>
+          <?php echo wp_kses_post( wc_price( $fee_amount_formatted, array( 'currency' => $order->get_currency() ) ) ); ?>
         </td>
       </tr>
       <?php
